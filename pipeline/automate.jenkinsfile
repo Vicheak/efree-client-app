@@ -28,7 +28,7 @@ pipeline {
         stage('Update Deployment Manifest') {
             steps {
                 sh """
-                    yq eval '.spec.template.spec.containers[0].image = "${FULL_IMAGE_NAME}"' -i pipeline/client-app.yaml
+                    yq eval '.spec.template.spec.containers[0].image = "${FULL_IMAGE_NAME}"' -i pipeline/deployment.yaml
                 """
             }
         }
@@ -36,14 +36,10 @@ pipeline {
         stage('Apply Kubernetes Manifest') {
             steps {
                 sh """
-                    kubectl apply -f pipeline/client-app.yaml
+                    for file in pipeline/*.yaml; do
+                        kubectl apply -f \$file
+                    done
                 """
-            }
-        }
-
-        stage('Clean Workspace') {
-            steps {
-                cleanWs()
             }
         }
     }
