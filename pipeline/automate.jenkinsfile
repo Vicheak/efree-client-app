@@ -1,0 +1,27 @@
+pipeline {
+
+    agent any
+
+    environment {
+        ENV = "${env.GIT_BRANCH == 'origin/prod' ? 'prod' : 'dev'}"
+        TELEGRAM_TOKEN = credentials('telegram-token')
+        IMAGE_NAME = "efree-client-app"
+        VERSION = "1.0.${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Build Client Application') {
+            steps {
+                sh 'echo "Building Client Application..."'
+                sh 'ls -lart'
+                script {
+                    docker.withRegistry("", "${BASE_REGISTRY}") {
+                        def adminDashboardImage = docker.build("${BASE_REGISTRY_USER}/${IMAGE_NAME}:${VERSION}", "-f Dockerfile .")
+                        adminDashboardImage.push()
+                    }
+                }
+            }
+        }
+    }
+    
+}
